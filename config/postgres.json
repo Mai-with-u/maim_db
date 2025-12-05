@@ -1,0 +1,13 @@
+{
+  "postgres_version": "15",
+  "container_name": "maimbot-postgres",
+  "port": "5432",
+  "database": "ai_saas",
+  "user": "postgres",
+  "password": "maimbot_2024",
+  "data_volume": "maimbot_postgres_data",
+  "host": "localhost",
+  "max_connections": "100",
+  "shared_buffers": "256MB",
+  "effective_cache_size": "1GB"
+}
