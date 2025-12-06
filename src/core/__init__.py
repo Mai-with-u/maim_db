@@ -32,6 +32,7 @@ from .async_models import (
     AsyncTenant,
     AsyncAgent,
     AsyncApiKey,
+    AsyncAgentActiveState,
 )
 
 # 导入所有模型
@@ -51,6 +52,7 @@ from .models import (
     Tenant,
     Agent,
     ApiKey,
+    AgentActiveState,
     # 基础模型
     BusinessBaseModel,
     # 业务模型
@@ -78,70 +80,61 @@ from .models import (
 
 __all__ = [
     # 数据库相关
-    'database',
-    'get_database',
-    'init_database',
-    'close_database',
-    'db_manager',
-
+    "database",
+    "get_database",
+    "init_database",
+    "close_database",
+    "db_manager",
     # 配置
-    'DatabaseConfig',
-    'settings',
-
+    "DatabaseConfig",
+    "settings",
     # 上下文管理
-    'get_current_agent_id',
-    'set_current_agent_id',
-    'clear_current_agent_id',
-    'agent_context_manager',
-    'agent_context',
-
+    "get_current_agent_id",
+    "set_current_agent_id",
+    "clear_current_agent_id",
+    "agent_context_manager",
+    "agent_context",
     # 配置管理
-    'AgentConfigManager',
-
+    "AgentConfigManager",
     # 异步模型
-    'AsyncTenant',
-    'AsyncAgent',
-    'AsyncApiKey',
-
+    "AsyncTenant",
+    "AsyncAgent",
+    "AsyncApiKey",
+    "AsyncAgentActiveState",
     # 枚举类
-    'TenantType',
-    'TenantStatus',
-    'AgentStatus',
-    'ApiKeyStatus',
-
+    "TenantType",
+    "TenantStatus",
+    "AgentStatus",
+    "ApiKeyStatus",
     # v2系统模型
-    'BaseModel',
-    'Tenant',
-    'Agent',
-    'ApiKey',
-
+    "BaseModel",
+    "Tenant",
+    "Agent",
+    "ApiKey",
+    "AgentActiveState",
     # 基础模型
-    'BusinessBaseModel',
-
+    "BusinessBaseModel",
     # 业务模型
-    'ChatHistory',
-    'ChatLogs',
-    'FileUpload',
-    'UserSession',
-    'SystemMetrics',
-
+    "ChatHistory",
+    "ChatLogs",
+    "FileUpload",
+    "UserSession",
+    "SystemMetrics",
     # 旧系统模型（deprecated）
-    'OldBaseModel',
-    'OldTenant',
-    'OldAgent',
-    'OldApiKey',
-    'User',
-
+    "OldBaseModel",
+    "OldTenant",
+    "OldAgent",
+    "OldApiKey",
+    "User",
     # 模型集合
-    'ALL_MODELS',
-    'V2_MODELS',
-    'BUSINESS_MODELS',
-    'DEPRECATED_MODELS',
-
+    "ALL_MODELS",
+    "V2_MODELS",
+    "BUSINESS_MODELS",
+    "DEPRECATED_MODELS",
     # Agent配置工具函数
-    'generate_config_id',
-    'parse_json_field',
-    'serialize_json_field',
-    'AGENT_CONFIG_MODELS',
-    'CONFIG_TYPE_MAPPING',
+    "generate_config_id",
+    "parse_json_field",
+    "serialize_json_field",
+    "AGENT_CONFIG_MODELS",
+    "CONFIG_TYPE_MAPPING",
 ]

@@ -11,12 +11,12 @@ from .system_v2 import (
     TenantStatus,
     AgentStatus,
     ApiKeyStatus,
-
     # 模型类
     BaseModel,
     Tenant,
     Agent,
     ApiKey,
+    AgentActiveState,
 )
 
 # 导入Agent配置模型
@@ -33,7 +33,6 @@ from .agent_config import (
     PluginConfigOverrides,
     KeywordReactionConfigOverrides,
     RelationshipConfigOverrides,
-
     # 工具函数和常量
     generate_config_id,
     parse_json_field,
@@ -67,6 +66,7 @@ V2_MODELS = [
     Tenant,
     Agent,
     ApiKey,
+    AgentActiveState,
 ]
 
 # Agent配置模型列表
@@ -109,56 +109,51 @@ DEPRECATED_MODELS = [
 
 __all__ = [
     # 枚举类
-    'TenantType',
-    'TenantStatus',
-    'AgentStatus',
-    'ApiKeyStatus',
-
+    "TenantType",
+    "TenantStatus",
+    "AgentStatus",
+    "ApiKeyStatus",
     # v2系统模型
-    'BaseModel',
-    'Tenant',
-    'Agent',
-    'ApiKey',
-
+    "BaseModel",
+    "Tenant",
+    "Agent",
+    "ApiKey",
+    "AgentActiveState",
     # Agent配置模型
-    'PersonalityConfig',
-    'BotConfigOverrides',
-    'ChatConfigOverrides',
-    'ExpressionConfigOverrides',
-    'MemoryConfigOverrides',
-    'MoodConfigOverrides',
-    'EmojiConfigOverrides',
-    'ToolConfigOverrides',
-    'VoiceConfigOverrides',
-    'PluginConfigOverrides',
-    'KeywordReactionConfigOverrides',
-    'RelationshipConfigOverrides',
-
+    "PersonalityConfig",
+    "BotConfigOverrides",
+    "ChatConfigOverrides",
+    "ExpressionConfigOverrides",
+    "MemoryConfigOverrides",
+    "MoodConfigOverrides",
+    "EmojiConfigOverrides",
+    "ToolConfigOverrides",
+    "VoiceConfigOverrides",
+    "PluginConfigOverrides",
+    "KeywordReactionConfigOverrides",
+    "RelationshipConfigOverrides",
     # 业务模型
-    'BusinessBaseModel',
-    'ChatHistory',
-    'ChatLogs',
-    'FileUpload',
-    'UserSession',
-    'SystemMetrics',
-
+    "BusinessBaseModel",
+    "ChatHistory",
+    "ChatLogs",
+    "FileUpload",
+    "UserSession",
+    "SystemMetrics",
     # 旧模型（deprecated）
-    'OldBaseModel',
-    'OldTenant',
-    'OldAgent',
-    'OldApiKey',
-    'User',
-
+    "OldBaseModel",
+    "OldTenant",
+    "OldAgent",
+    "OldApiKey",
+    "User",
     # 模型集合
-    'ALL_MODELS',
-    'V2_MODELS',
-    'BUSINESS_MODELS',
-    'AGENT_CONFIG_MODELS',
-    'DEPRECATED_MODELS',
-
+    "ALL_MODELS",
+    "V2_MODELS",
+    "BUSINESS_MODELS",
+    "AGENT_CONFIG_MODELS",
+    "DEPRECATED_MODELS",
     # 工具函数
-    'generate_config_id',
-    'parse_json_field',
-    'serialize_json_field',
-    'CONFIG_TYPE_MAPPING',
+    "generate_config_id",
+    "parse_json_field",
+    "serialize_json_field",
+    "CONFIG_TYPE_MAPPING",
 ]

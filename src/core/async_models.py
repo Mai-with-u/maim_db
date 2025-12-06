@@ -10,6 +10,7 @@ from datetime import datetime
 from typing import Dict, List, Optional
 
 from .models.system_v2 import Agent as MaimDbAgent
+from .models.system_v2 import AgentActiveState as MaimDbAgentActiveState
 from .models.system_v2 import AgentStatus, ApiKeyStatus, TenantStatus, TenantType
 from .models.system_v2 import ApiKey as MaimDbApiKey
 from .models.system_v2 import Tenant as MaimDbTenant
@@ -53,23 +54,24 @@ class AsyncTenant:
             return None
 
     @classmethod
-    async def create(cls, **kwargs) -> 'AsyncTenant':
+    async def create(cls, **kwargs) -> "AsyncTenant":
         """创建租户"""
+
         def _create():
             data = {
-                'tenant_name': kwargs.get('tenant_name'),
-                'tenant_type': kwargs.get('tenant_type', TenantType.PERSONAL.value),
-                'description': kwargs.get('description'),
-                'contact_email': kwargs.get('contact_email'),
-                'tenant_config': json.dumps(kwargs.get('tenant_config', {})),
-                'status': kwargs.get('status', TenantStatus.ACTIVE.value),
-                'owner_id': kwargs.get('owner_id'),
+                "tenant_name": kwargs.get("tenant_name"),
+                "tenant_type": kwargs.get("tenant_type", TenantType.PERSONAL.value),
+                "description": kwargs.get("description"),
+                "contact_email": kwargs.get("contact_email"),
+                "tenant_config": json.dumps(kwargs.get("tenant_config", {})),
+                "status": kwargs.get("status", TenantStatus.ACTIVE.value),
+                "owner_id": kwargs.get("owner_id"),
             }
 
-            if 'id' not in kwargs:
-                data['id'] = f"tenant_{uuid.uuid4().hex[:12]}"
+            if "id" not in kwargs:
+                data["id"] = f"tenant_{uuid.uuid4().hex[:12]}"
             else:
-                data['id'] = kwargs['id']
+                data["id"] = kwargs["id"]
 
             return MaimDbTenant.create(**data)
 
@@ -77,8 +79,9 @@ class AsyncTenant:
         return cls(tenant)
 
     @classmethod
-    async def get(cls, tenant_id: str) -> Optional['AsyncTenant']:
+    async def get(cls, tenant_id: str) -> Optional["AsyncTenant"]:
         """获取租户"""
+
         def _get():
             try:
                 return MaimDbTenant.get_by_id(tenant_id)
@@ -89,8 +92,9 @@ class AsyncTenant:
         return cls(tenant) if tenant else None
 
     @classmethod
-    async def get_by_name(cls, tenant_name: str) -> Optional['AsyncTenant']:
+    async def get_by_name(cls, tenant_name: str) -> Optional["AsyncTenant"]:
         """根据名称获取租户"""
+
         def _get():
             try:
                 return MaimDbTenant.get(MaimDbTenant.tenant_name == tenant_name)
@@ -101,8 +105,9 @@ class AsyncTenant:
         return cls(tenant) if tenant else None
 
     @classmethod
-    async def get_all(cls, limit: int = None, offset: int = 0) -> List['AsyncTenant']:
+    async def get_all(cls, limit: int = None, offset: int = 0) -> List["AsyncTenant"]:
         """获取所有租户"""
+
         def _get_all():
             query = MaimDbTenant.select()
             if limit:
@@ -115,12 +120,13 @@ class AsyncTenant:
     @classmethod
     async def count(cls) -> int:
         """获取租户总数"""
+
         def _count():
             return MaimDbTenant.select().count()
 
         return await asyncio.get_event_loop().run_in_executor(None, _count)
 
-    async def update(self, **kwargs) -> 'AsyncTenant':
+    async def update(self, **kwargs) -> "AsyncTenant":
         """更新租户"""
         if not self._tenant:
             raise RuntimeError("租户实例未关联到数据库记录")
@@ -128,7 +134,7 @@ class AsyncTenant:
         def _update():
             for field, value in kwargs.items():
                 if hasattr(self._tenant, field):
-                    if field == 'tenant_config' and value is not None:
+                    if field == "tenant_config" and value is not None:
                         value = json.dumps(value)
                     setattr(self._tenant, field, value)
             self._tenant.save()
@@ -139,7 +145,7 @@ class AsyncTenant:
         # 更新本地属性
         for field, value in kwargs.items():
             if hasattr(self, field):
-                if field == 'tenant_config':
+                if field == "tenant_config":
                     value = self._parse_json(json.dumps(value)) if value else None
                 setattr(self, field, value)
 
@@ -195,22 +201,23 @@ class AsyncAgent:
             return None
 
     @classmethod
-    async def create(cls, **kwargs) -> 'AsyncAgent':
+    async def create(cls, **kwargs) -> "AsyncAgent":
         """创建Agent"""
+
         def _create():
             data = {
-                'tenant_id': kwargs.get('tenant_id'),
-                'name': kwargs.get('name'),
-                'description': kwargs.get('description'),
-                'template_id': kwargs.get('template_id'),
-                'config': json.dumps(kwargs.get('config', {})),
-                'status': kwargs.get('status', AgentStatus.ACTIVE.value),
+                "tenant_id": kwargs.get("tenant_id"),
+                "name": kwargs.get("name"),
+                "description": kwargs.get("description"),
+                "template_id": kwargs.get("template_id"),
+                "config": json.dumps(kwargs.get("config", {})),
+                "status": kwargs.get("status", AgentStatus.ACTIVE.value),
             }
 
-            if 'id' not in kwargs:
-                data['id'] = f"agent_{uuid.uuid4().hex[:12]}"
+            if "id" not in kwargs:
+                data["id"] = f"agent_{uuid.uuid4().hex[:12]}"
             else:
-                data['id'] = kwargs['id']
+                data["id"] = kwargs["id"]
 
             return MaimDbAgent.create(**data)
 
@@ -218,8 +225,9 @@ class AsyncAgent:
         return cls(agent)
 
     @classmethod
-    async def get(cls, agent_id: str) -> Optional['AsyncAgent']:
+    async def get(cls, agent_id: str) -> Optional["AsyncAgent"]:
         """获取Agent"""
+
         def _get():
             try:
                 return MaimDbAgent.get_by_id(agent_id)
@@ -230,15 +238,16 @@ class AsyncAgent:
         return cls(agent) if agent else None
 
     @classmethod
-    async def get_by_tenant(cls, tenant_id: str) -> List['AsyncAgent']:
+    async def get_by_tenant(cls, tenant_id: str) -> List["AsyncAgent"]:
         """获取租户下的所有Agent"""
+
         def _get_by_tenant():
             return list(MaimDbAgent.select().where(MaimDbAgent.tenant_id == tenant_id))
 
         agents = await asyncio.get_event_loop().run_in_executor(None, _get_by_tenant)
         return [cls(agent) for agent in agents]
 
-    async def update(self, **kwargs) -> 'AsyncAgent':
+    async def update(self, **kwargs) -> "AsyncAgent":
         """更新Agent"""
         if not self._agent:
             raise RuntimeError("Agent实例未关联到数据库记录")
@@ -246,7 +255,7 @@ class AsyncAgent:
         def _update():
             for field, value in kwargs.items():
                 if hasattr(self._agent, field):
-                    if field == 'config' and value is not None:
+                    if field == "config" and value is not None:
                         value = json.dumps(value)
                     setattr(self._agent, field, value)
             self._agent.save()
@@ -257,7 +266,7 @@ class AsyncAgent:
         # 更新本地属性
         for field, value in kwargs.items():
             if hasattr(self, field):
-                if field == 'config':
+                if field == "config":
                     value = self._parse_json(json.dumps(value)) if value else None
                 setattr(self, field, value)
 
@@ -322,24 +331,25 @@ class AsyncApiKey:
             return []
 
     @classmethod
-    async def create(cls, **kwargs) -> 'AsyncApiKey':
+    async def create(cls, **kwargs) -> "AsyncApiKey":
         """创建API密钥"""
+
         def _create():
             data = {
-                'tenant_id': kwargs.get('tenant_id'),
-                'agent_id': kwargs.get('agent_id'),
-                'name': kwargs.get('name'),
-                'description': kwargs.get('description'),
-                'api_key': kwargs.get('api_key'),
-                'permissions': json.dumps(kwargs.get('permissions', [])),
-                'status': kwargs.get('status', ApiKeyStatus.ACTIVE.value),
-                'expires_at': kwargs.get('expires_at'),
+                "tenant_id": kwargs.get("tenant_id"),
+                "agent_id": kwargs.get("agent_id"),
+                "name": kwargs.get("name"),
+                "description": kwargs.get("description"),
+                "api_key": kwargs.get("api_key"),
+                "permissions": json.dumps(kwargs.get("permissions", [])),
+                "status": kwargs.get("status", ApiKeyStatus.ACTIVE.value),
+                "expires_at": kwargs.get("expires_at"),
             }
 
-            if 'id' not in kwargs:
-                data['id'] = f"key_{uuid.uuid4().hex[:12]}"
+            if "id" not in kwargs:
+                data["id"] = f"key_{uuid.uuid4().hex[:12]}"
             else:
-                data['id'] = kwargs['id']
+                data["id"] = kwargs["id"]
 
             return MaimDbApiKey.create(**data)
 
@@ -347,8 +357,9 @@ class AsyncApiKey:
         return cls(api_key)
 
     @classmethod
-    async def get(cls, api_key_id: str) -> Optional['AsyncApiKey']:
+    async def get(cls, api_key_id: str) -> Optional["AsyncApiKey"]:
         """获取API密钥"""
+
         def _get():
             try:
                 return MaimDbApiKey.get_by_id(api_key_id)
@@ -359,8 +370,9 @@ class AsyncApiKey:
         return cls(api_key) if api_key else None
 
     @classmethod
-    async def get_by_key(cls, api_key_value: str) -> Optional['AsyncApiKey']:
+    async def get_by_key(cls, api_key_value: str) -> Optional["AsyncApiKey"]:
         """根据API密钥值获取"""
+
         def _get():
             try:
                 return MaimDbApiKey.get(MaimDbApiKey.api_key == api_key_value)
@@ -371,10 +383,13 @@ class AsyncApiKey:
         return cls(api_key) if api_key else None
 
     @classmethod
-    async def get_by_tenant(cls, tenant_id: str) -> List['AsyncApiKey']:
+    async def get_by_tenant(cls, tenant_id: str) -> List["AsyncApiKey"]:
         """获取租户下的所有API密钥"""
+
         def _get_by_tenant():
-            return list(MaimDbApiKey.select().where(MaimDbApiKey.tenant_id == tenant_id))
+            return list(
+                MaimDbApiKey.select().where(MaimDbApiKey.tenant_id == tenant_id)
+            )
 
         api_keys = await asyncio.get_event_loop().run_in_executor(None, _get_by_tenant)
         return [cls(api_key) for api_key in api_keys]
@@ -383,8 +398,64 @@ class AsyncApiKey:
         return f"<AsyncApiKey(id='{self.id}', name='{self.name}', tenant_id='{self.tenant_id}')>"
 
 
+class AsyncAgentActiveState:
+    """异步活跃状态模型，用于记录租户-Agent 心跳"""
+
+    def __init__(self, record: MaimDbAgentActiveState = None):
+        if record:
+            self.tenant_id = record.tenant_id
+            self.agent_id = record.agent_id
+            self.last_seen_at = record.last_seen_at
+            self.ttl_seconds = record.ttl_seconds
+            self.expires_at = record.expires_at
+            self._record = record
+        else:
+            self.tenant_id = None
+            self.agent_id = None
+            self.last_seen_at = None
+            self.ttl_seconds = None
+            self.expires_at = None
+            self._record = None
+
+    @classmethod
+    async def upsert(
+        cls, tenant_id: str, agent_id: str, ttl_seconds: int
+    ) -> "AsyncAgentActiveState":
+        """更新心跳并刷新 TTL"""
+
+        def _touch():
+            return MaimDbAgentActiveState.touch(
+                tenant_id=tenant_id, agent_id=agent_id, ttl_seconds=ttl_seconds
+            )
+
+        record = await asyncio.get_event_loop().run_in_executor(None, _touch)
+        return cls(record)
+
+    @classmethod
+    async def list_active(cls) -> List["AsyncAgentActiveState"]:
+        """获取所有未过期的活跃记录"""
+
+        def _list():
+            return list(MaimDbAgentActiveState.list_active())
+
+        records = await asyncio.get_event_loop().run_in_executor(None, _list)
+        return [cls(record) for record in records]
+
+    def __repr__(self):
+        return (
+            f"<AsyncAgentActiveState(tenant_id='{self.tenant_id}', "
+            f"agent_id='{self.agent_id}', expires_at='{self.expires_at}')>"
+        )
+
+
 # 导出异步模型
 __all__ = [
-    'AsyncTenant', 'AsyncAgent', 'AsyncApiKey',
-    'TenantType', 'TenantStatus', 'AgentStatus', 'ApiKeyStatus'
+    "AsyncTenant",
+    "AsyncAgent",
+    "AsyncApiKey",
+    "AsyncAgentActiveState",
+    "TenantType",
+    "TenantStatus",
+    "AgentStatus",
+    "ApiKeyStatus",
 ]
