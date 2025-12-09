@@ -37,6 +37,22 @@
     - LLMRequest 直接持有 `model_config` 的 TaskConfig 实例，未被代理时所有租户共用同一份温度/最大 token 等配置。
 - **优先级建议**: 先改造 `global_config`/`model_config` 为代理并清理 `__init__` 固化，再着手 ChatStream/数据库的租户化，实现上下游一致的 TenantContext。
 
+### 🎯 2025-12-08：配置懒加载整改计划
+
+| 模块                                     | 现状风险                                                                                                                                                                         | 整改思路                                                                                                                                                                            | 备注                                                    |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| `src/person_info/person_info.py`         | 模块级 `relation_selection_model` 及 `PersonInfoManager` 在导入时一次性绑定 `model_config`，LLM 请求始终使用首个租户配置；`Person` 初始化时也会把 bot 配置写进实例，跨租户复用。 | 提供 `build_relation_selection_model()`/`get_person_info_manager()` 等懒加载工厂；`PersonInfoManager.qv_name_llm` 改为按需创建；对 bot 自身属性改为实时读取 `global_config.bot.*`。 | 模块其余逻辑已通过 `global_config` 动态访问，不需大改。 |
+| `src/chat/emoji_system/emoji_manager.py` | 单例 `EmojiManager` 在构造函数里缓存 `LLMRequest`、`emoji_num_max` 等基本类型，导致后续租户无法覆盖；目录扫描、注册任务都读取这些缓存。                                          | 引入只读属性/方法（例如 `_current_emoji_config`、`vlm_request`）替换成员变量；所有调用点改为实时取值；为将来拆分 per-tenant 目录预留注释。                                          | 与目录/缓存串租问题解耦，此处先确保运行时代理生效。     |
+| `src/express/expression_learner.py`      | 每个聊天学习器在 `__init__` 时缓存 `enable_learning`、`learning_intensity`、三个 `LLMRequest`；学习循环长期运行不会刷新配置。                                                    | 新增 `_resolve_expression_config()` 在 `should_trigger_learning`、`learn_expression` 里动态计算；为三个 LLM 请求提供轻量工厂方法，按调用即时创建；阈值改为临时变量而非实例属性。    | 与 chat_id 前缀、磁盘路径整改互相独立，可并行推进。     |
+
+- **实施顺序**：先完成上述三个模块的懒加载改造，再逐一复测 Emoji 注册、人物信息命名、表达学习链路，确认不同租户在同进程内互不干扰。验证完成后在本文件更新状态。 
+
+#### 实施结果（2025-12-08）
+
+- `src/person_info/person_info.py`：移除了模块级 `LLMRequest` 单例，改用工厂函数按需创建；`PersonInfoManager` 通过懒加载代理导出，`qv_person_name` 在每次调用时重新构造模型；`Person` 的昵称/人名属性改为属性函数，机器人身份实时透传 `global_config.bot.*`。
+- `src/chat/emoji_system/emoji_manager.py`：`EmojiManager` 不再缓存 VLM/LLM 请求或配置阈值，改用私有方法/属性实时读取；表情替换与描述生成流程注入局部模型实例，容量上限通过属性读取最新的租户配置。
+- `src/express/expression_learner.py`：删除所有构造期缓存，新增模型工厂与 `_resolve_learning_thresholds`，确保学习开关、强度与请求模型均在运行时读取；`should_trigger_learning`、`learn_expression`、`_summarize_situations` 已按照新的入口调用。
+
 ## ✅ Todo #6：全局/单例状态风险地图
 
 下表记录仍依赖 chat_id 或全局单例的模块，并给出是否可通过 chat_id 前缀、数据库 TenantModel、或更高层改造来化解风险。
