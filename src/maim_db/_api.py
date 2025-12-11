@@ -1,7 +1,4 @@
-"""
-AI Project Core 源码包初始化文件
-统一数据库核心库的主要入口
-"""
+"""Shared export surface for both legacy `src` and new `maim_db` packages."""
 
 # 导入异步模型
 try:
@@ -64,61 +61,61 @@ from .core import (
 
 __all__ = [
     # 数据库相关
-    'close_database',
-    'database',
-    'db_manager',
-    'get_database',
-    'init_database',
+    "close_database",
+    "database",
+    "db_manager",
+    "get_database",
+    "init_database",
 
     # 配置
-    'DatabaseConfig',
+    "DatabaseConfig",
 
     # 上下文管理
-    'agent_context',
-    'agent_context_manager',
-    'clear_current_agent_id',
-    'get_current_agent_id',
-    'set_current_agent_id',
+    "agent_context",
+    "agent_context_manager",
+    "clear_current_agent_id",
+    "get_current_agent_id",
+    "set_current_agent_id",
 
     # 枚举类
-    'TenantType',
-    'TenantStatus',
-    'AgentStatus',
-    'ApiKeyStatus',
+    "TenantType",
+    "TenantStatus",
+    "AgentStatus",
+    "ApiKeyStatus",
 
     # v2系统模型
-    'BaseModel',
-    'Tenant',
-    'Agent',
-    'ApiKey',
+    "BaseModel",
+    "Tenant",
+    "Agent",
+    "ApiKey",
 
     # 基础模型
-    'BusinessBaseModel',
+    "BusinessBaseModel",
 
     # 业务模型
-    'ChatHistory',
-    'ChatLogs',
-    'FileUpload',
-    'SystemMetrics',
-    'UserSession',
+    "ChatHistory",
+    "ChatLogs",
+    "FileUpload",
+    "SystemMetrics",
+    "UserSession",
 
     # 旧系统模型（deprecated）
-    'OldBaseModel',
-    'OldTenant',
-    'OldAgent',
-    'OldApiKey',
-    'User',
+    "OldBaseModel",
+    "OldTenant",
+    "OldAgent",
+    "OldApiKey",
+    "User",
 
     # 模型集合
-    'ALL_MODELS',
-    'V2_MODELS',
-    'BUSINESS_MODELS',
-    'DEPRECATED_MODELS',
+    "ALL_MODELS",
+    "V2_MODELS",
+    "BUSINESS_MODELS",
+    "DEPRECATED_MODELS",
 
     # 异步模型
-    'AsyncTenant',
-    'AsyncAgent',
-    'AsyncApiKey',
+    "AsyncTenant",
+    "AsyncAgent",
+    "AsyncApiKey",
 ]
 
 __version__ = "1.0.0"

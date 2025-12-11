@@ -1,6 +1,7 @@
 """
 AI Project Core 安装配置
 """
+
 from setuptools import setup, find_packages
 
 with open("README.md", "r", encoding="utf-8") as fh:
@@ -36,7 +37,6 @@ setup(
     python_requires=">=3.8",
     install_requires=[
         "peewee>=3.16.0",
-        "playhouse>=3.16.0",
     ],
     extras_require={
         "dev": [

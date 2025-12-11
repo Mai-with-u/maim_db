@@ -1,6 +1,5 @@
 # 核心依赖
 peewee>=3.16.0
-playhouse>=3.16.0
 
 # 数据库驱动（根据需要选择其中一个）
 # psycopg2-binary>=2.9.0  # PostgreSQL
