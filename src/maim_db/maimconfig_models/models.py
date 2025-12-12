@@ -83,6 +83,11 @@ class Tenant(Base):
         back_populates="tenant",
         cascade="all, delete-orphan"
     )
+    plugin_settings: Mapped[List["PluginSettings"]] = relationship(
+        "PluginSettings",
+        back_populates="tenant",
+        cascade="all, delete-orphan"
+    )
 
     def __repr__(self):
         return f"<Tenant(id='{self.id}', name='{self.tenant_name}')>"
@@ -124,6 +129,11 @@ class Agent(Base):
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="agents")
     api_keys: Mapped[List["ApiKey"]] = relationship(
         "ApiKey",
+        back_populates="agent",
+        cascade="all, delete-orphan"
+    )
+    plugin_settings: Mapped[List["PluginSettings"]] = relationship(
+        "PluginSettings",
         back_populates="agent",
         cascade="all, delete-orphan"
     )
@@ -180,6 +190,46 @@ class ApiKey(Base):
     def __repr__(self):
         return f"<ApiKey(id='{self.id}', name='{self.name}', tenant_id='{self.tenant_id}')>"
 
+
+class PluginSettings(Base):
+    """插件配置表"""
+    __tablename__ = "plugin_settings"
+
+    id: Mapped[str] = mapped_column(String(50), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(
+        String(50),
+        ForeignKey("tenants.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
+    agent_id: Mapped[Optional[str]] = mapped_column(
+        String(50),
+        ForeignKey("agents.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True
+    )
+    plugin_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    enabled: Mapped[bool] = mapped_column(default=False, nullable=False)
+    config: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, default={})
+    
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False
+    )
+
+    # 关系
+    tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="plugin_settings")
+    agent: Mapped[Optional["Agent"]] = relationship("Agent", back_populates="plugin_settings")
+
+    def __repr__(self):
+        return f"<PluginSettings(id='{self.id}', plugin='{self.plugin_name}', tenant='{self.tenant_id}')>"
 
 
 
