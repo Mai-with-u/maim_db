@@ -2,7 +2,12 @@ import os
 import sys
 import time
 
+import logging
 import asyncio
+
+# 屏蔽库级日志噪声
+logging.getLogger("asyncio").setLevel(logging.CRITICAL)
+logging.getLogger("websockets").setLevel(logging.CRITICAL)
 
 # 确保可导入本地的 maim_db / maim_message 源码
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -21,6 +26,23 @@ from maim_message.api_message_base import APIMessageBase, BaseMessageInfo, Seg, 
 
 
 async def main():
+    # 自定义异常处理器，屏蔽 asyncio 关闭时的噪声
+    def ignore_asyncio_noise(loop, context):
+        message = context.get("message", "")
+        # 屏蔽 Event loop is closed 和 Task was destroyed 错误
+        if "Event loop is closed" in message or "Task was destroyed" in message:
+            return
+        # 屏蔽 websockets 的连接关闭异常
+        if "connection_loop" in str(context.get("future", "")):
+            return
+            
+        # 默认处理
+        loop.default_exception_handler(context)
+
+    # 设置异常处理器
+    loop = asyncio.get_running_loop()
+    loop.set_exception_handler(ignore_asyncio_noise)
+
     # 初始化 maim_db 连接
     try:
         init_database()
@@ -97,10 +119,19 @@ async def main():
     # 响应队列
     response_queue = asyncio.Queue()
 
-    async def on_message(message: APIMessageBase):
+    # 定义回调
+    async def on_message(message: APIMessageBase, metadata: dict):
+        # print(f"DEBUG: Test received message: {message}")
         await response_queue.put(message)
 
-    client.on_message = on_message
+    # 重要修复：必须更新 config 中的 on_message 回调，而不是直接设置 client 属性
+    # WebSocketClientBase 使用 self.default_config.on_message
+    if client.default_config:
+        client.default_config.on_message = on_message
+    else:
+        # 如果没有 default_config (理论上不可能，因为上面传入了 config)，则手动设置
+        # 但这里的 WebSocketClient 实现可能依赖 config
+        pass
 
     # 启动并连接（限时等待）
     await client.start()
