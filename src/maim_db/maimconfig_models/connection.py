@@ -4,10 +4,10 @@
 
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
-from src.common.config import settings
-from src.common.logger import get_logger
+from maim_db.core.settings import settings
+import logging
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 # 创建异步引擎
 engine = create_async_engine(

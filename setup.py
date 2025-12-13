@@ -1,5 +1,5 @@
 """
-AI Project Core 安装配置
+maim_db 安装配置
 """
 
 from setuptools import setup, find_packages
@@ -8,14 +8,14 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name="ai-project-core",
+    name="maim_db",
     version="1.0.0",
-    author="AI Project Team",
-    author_email="team@ai-project.com",
-    description="统一数据库核心库 - 支持多租户SaaS架构的数据模型和数据库管理",
+    author="MaiM Team",
+    author_email="team@maim.ai",
+    description="maim_db - MaiM 多租户数据平面与数据库模型库",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/ai-project/ai-project-core",
+    url="https://github.com/maim-project/maim_db",
     package_dir={"": "src"},
     packages=find_packages(where="src"),
     classifiers=[

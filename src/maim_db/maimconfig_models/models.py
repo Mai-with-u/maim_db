@@ -9,10 +9,13 @@ from datetime import datetime
 from enum import Enum as PyEnum
 from typing import Optional, List, Dict, Any
 
-from src.database.connection import Base
-from src.common.logger import get_logger
 
-logger = get_logger(__name__)
+
+import logging
+
+from .connection import Base
+
+logger = logging.getLogger(__name__)
 
 
 class TenantType(str, PyEnum):
@@ -44,6 +47,41 @@ class ApiKeyStatus(str, PyEnum):
 
 
 
+
+class User(Base):
+    """用户表"""
+    __tablename__ = "users"
+
+    id: Mapped[str] = mapped_column(String(50), primary_key=True)
+    username: Mapped[str] = mapped_column(String(100), unique=True, nullable=False, index=True)
+    email: Mapped[Optional[str]] = mapped_column(String(255), unique=True, index=True)
+    hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+    is_active: Mapped[bool] = mapped_column(default=True, nullable=False)
+    
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False
+    )
+
+    # 关系
+    tenants: Mapped[List["Tenant"]] = relationship(
+        "Tenant",
+        back_populates="owner",
+        cascade="all, delete-orphan",
+        foreign_keys="Tenant.owner_id"
+    )
+
+    def __repr__(self):
+        return f"<User(id='{self.id}', username='{self.username}')>"
+
+
 class Tenant(Base):
     """租户表"""
     __tablename__ = "tenants"
@@ -59,7 +97,12 @@ class Tenant(Base):
         default=TenantStatus.ACTIVE,
         nullable=False
     )
-    owner_id: Mapped[Optional[str]] = mapped_column(String(50))
+    owner_id: Mapped[Optional[str]] = mapped_column(
+        String(50),
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -73,6 +116,11 @@ class Tenant(Base):
     )
 
     # 关系
+    owner: Mapped[Optional["User"]] = relationship(
+        "User",
+        back_populates="tenants",
+        foreign_keys=[owner_id]
+    )
     agents: Mapped[List["Agent"]] = relationship(
         "Agent",
         back_populates="tenant",
@@ -236,7 +284,7 @@ class PluginSettings(Base):
 async def create_tables() -> None:
     """创建所有数据库表"""
     try:
-        from src.database.connection import engine
+        from .connection import engine
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
         logger.info("数据库表创建成功")

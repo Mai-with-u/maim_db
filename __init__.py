@@ -1,16 +1,16 @@
 """
-AI Project Core - 统一数据库核心库
+maim_db - MaiM 数据平面与模型库
 
-本库提供了AI SaaS系统的统一数据库架构，支持多租户数据隔离。
+本库提供MaiM多租户SaaS的统一数据库架构，支持基于 agent_id 的数据隔离。
 主要特性：
 - 控制面与数据面分离
-- 多租户数据隔离（基于agent_id）
-- ORM基座替换支持
+- 多租户数据隔离（基于 agent_id）
+- ORM 基座替换支持
 - 统一的数据库连接管理
 """
 
 from .src import *
 
 __version__ = "1.0.0"
-__author__ = "AI Project Team"
-__description__ = "统一数据库核心库 - 支持多租户SaaS架构的数据模型和数据库管理"
+__author__ = "MaiM Team"
+__description__ = "maim_db - 多租户数据平面与数据库模型库"

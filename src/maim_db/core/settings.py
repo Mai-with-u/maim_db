@@ -13,7 +13,7 @@ class Settings:
         # 数据库配置 - 默认SQLite，兼容maimconfig
         self.database_url = os.getenv(
             'DATABASE_URL',
-            "sqlite:///data/MaiBot.db"
+            "sqlite+aiosqlite:///data/MaiBot.db"
         )
         self.database_host = os.getenv('DATABASE_HOST', "localhost")
         self.database_port = int(os.getenv('DATABASE_PORT', "3306"))
