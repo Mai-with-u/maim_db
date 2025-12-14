@@ -2,6 +2,7 @@
 数据库连接管理
 """
 
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 from maim_db.core.settings import settings
@@ -52,7 +53,7 @@ async def init_database() -> None:
     try:
         # 测试数据库连接
         async with engine.begin() as conn:
-            await conn.execute("SELECT 1")
+            await conn.execute(text("SELECT 1"))
         logger.info("数据库连接测试成功")
     except Exception as e:
         logger.error(f"数据库连接失败: {e}")

@@ -88,13 +88,13 @@ class Tenant(Base):
 
     id: Mapped[str] = mapped_column(String(50), primary_key=True)
     tenant_name: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
-    tenant_type: Mapped[TenantType] = mapped_column(Enum(TenantType), nullable=False)
+    tenant_type: Mapped[str] = mapped_column(String(50), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(Text)
     contact_email: Mapped[Optional[str]] = mapped_column(String(255))
     tenant_config: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON)
-    status: Mapped[TenantStatus] = mapped_column(
-        Enum(TenantStatus),
-        default=TenantStatus.ACTIVE,
+    status: Mapped[str] = mapped_column(
+        String(50),
+        default=TenantStatus.ACTIVE.value,
         nullable=False
     )
     owner_id: Mapped[Optional[str]] = mapped_column(
@@ -156,9 +156,9 @@ class Agent(Base):
     description: Mapped[Optional[str]] = mapped_column(Text)
     template_id: Mapped[Optional[str]] = mapped_column(String(50))
     config: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON)
-    status: Mapped[AgentStatus] = mapped_column(
-        Enum(AgentStatus),
-        default=AgentStatus.ACTIVE,
+    status: Mapped[str] = mapped_column(
+        String(50),
+        default=AgentStatus.ACTIVE.value,
         nullable=False
     )
     created_at: Mapped[datetime] = mapped_column(
@@ -211,9 +211,9 @@ class ApiKey(Base):
     description: Mapped[Optional[str]] = mapped_column(Text)
     api_key: Mapped[str] = mapped_column(String(255), nullable=False, unique=True, index=True)
     permissions: Mapped[List[str]] = mapped_column(JSON, nullable=False, default=list)
-    status: Mapped[ApiKeyStatus] = mapped_column(
-        Enum(ApiKeyStatus),
-        default=ApiKeyStatus.ACTIVE,
+    status: Mapped[str] = mapped_column(
+        String(50),
+        default=ApiKeyStatus.ACTIVE.value,
         nullable=False
     )
     expires_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))

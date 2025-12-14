@@ -35,6 +35,7 @@ pip install -e .
 ## 文档导航（docs/）
 
 - 模型参考：[docs/DATABASE_MODELS.md](docs/DATABASE_MODELS.md)
+- **[推荐] 全栈开发与使用指南：[docs/full_stack_guide.md](docs/full_stack_guide.md)**
 - Agent/ID 规则：[docs/AGENT_ID_GUIDE.md](docs/AGENT_ID_GUIDE.md)
 - 多租户迁移方案：[docs/MULTI_TENANT_MIGRATION_STRATEGY.md](docs/MULTI_TENANT_MIGRATION_STRATEGY.md)
 - 进度与验证：[docs/MULTI_TENANT_PROGRESS_2025-12-06.md](docs/MULTI_TENANT_PROGRESS_2025-12-06.md)、[docs/MULTI_TENANT_VERIFICATION_2025-12-06.md](docs/MULTI_TENANT_VERIFICATION_2025-12-06.md)

@@ -108,11 +108,46 @@ class DatabaseManager:
         from pathlib import Path
 
         # 确保数据目录存在
-        data_dir = Path(__file__).parent.parent.parent / "data"
-        data_dir.mkdir(exist_ok=True)
+        
+        database_url = self._database_config.get_database_url()
+        if database_url and 'sqlite' in str(database_url):
+            # 尝试提取路径
+            try:
+                # remove scheme
+                path_str = str(database_url).split('://')[-1]
+                # If absolute path with extra slash (sqlite:////path), remove one slash if needed?
+                # Usually sqlite:////absolute/path -> /absolute/path
+                # But here we just get the part after ://
+                # For sqlite:////home/..., it becomes //home/...
+                # But Peewee SqliteDatabase takes a filename string. 
+                # //home/... works as absolute path in some contexts, but let's be safe.
+                if path_str.startswith('/'):
+                     # Check if it was /// (relative) or //// (absolute)
+                     # Standard: sqlite:///relative.db -> /relative.db? No.
+                     # sqlite:///foo.db -> foo.db
+                     # sqlite:////abs/path/foo.db -> /abs/path/foo.db
+                     pass
+                
+                # Simplified parsing:
+                # Allow the user to specify full path. 
+                # If we use SQLAlchemy format: sqlite+aiosqlite:////path/to/db
+                if ':///' in str(database_url):
+                     db_path = str(database_url).split(':///')[-1]
+                elif '://' in str(database_url):
+                     db_path = str(database_url).split('://')[-1]
+                else:
+                     db_path = str(database_url)
 
-        # SQLite数据库文件路径
-        db_path = data_dir / "MaiBot.db"
+                # Fix for 'sqlite+aiosqlite:////home' -> '/home'
+                # If split result starts with /, keep it.
+            except:
+                db_path = "MainBot.db" # Fallback
+        else:
+            data_dir = Path(__file__).parent.parent.parent / "data"
+            data_dir.mkdir(exist_ok=True)
+            db_path = data_dir / "MaiBot.db"
+            
+        print(f"🚀 SQLite DB Path: {db_path}")
 
         return SqliteDatabase(
             db_path,
