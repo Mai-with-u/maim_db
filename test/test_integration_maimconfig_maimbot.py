@@ -147,7 +147,7 @@ async def main():
         msg_info = BaseMessageInfo(
             platform="test", message_id=f"msg_{ts}", time=time.time(), sender_info=sender_info
         )
-        seg = Seg(type="text", data="ping")
+        seg = Seg(type="text", data="PING_TEST")
         # 添加 message_id_echo 指令，MaiMBot 会回显
         md = MessageDim.from_dict({"api_key": api_key_value, "platform": "test", "message_id_echo": "true"})
         api_msg = APIMessageBase(message_info=msg_info, message_segment=seg, message_dim=md)

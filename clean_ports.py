@@ -4,7 +4,7 @@ import sys
 import subprocess
 import time
 
-PORTS = [8000, 8081, 18040]
+PORTS = [8000, 8081, 18040, 8880, 5173, 8001, 18042, 18045, 8005]
 
 def kill_port(port):
     """尝试清理指定端口的进程"""
