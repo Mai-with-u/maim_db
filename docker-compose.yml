@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  maim-all-in-one:
+    # 构建配置：使用上一步创建的 Dockerfile
+    build:
+      context: ../
+      dockerfile: maim_db/Dockerfile
+    image: maim-all-in-one
+    container_name: maim-workspace
+
+    # 自动重启策略：除非手动停止，否则无限重启（类似虚拟机及其服务的行为）
+    restart: always
+
+    # 端口映射 (Macvlan 模式下不生效，因为容器有独立IP)
+    # ports:
+    #   - "2222:22" # SSH Access
+    #   - "8000:8000" # MaimConfig
+    #   - "18042:18042" # MaiMBot WS
+    #   - "8880:8880" # MaimWebBackend
+    #   - "5173:5173" # MaimWeb Frontend
+
+    # 挂载配置：实现 IDE 式开发体验
+    volumes:
+      # 1. 核心挂载：将宿主机的所有项目直接映射到容器的 /app 目录
+      # 只有这样，你在宿主机修改代码，容器里才会立即生效
+      - ../:/app
+
+      # 2. 保护数据目录（虽然在 /app 下，但显式声明也没问题）
+      # - ../data:/app/data
+
+      # 3. Node.js 依赖保护 (重要！)
+      # 防止宿主机的 node_modules (可能为空或架构不同) 覆盖容器内已安装好的依赖
+      # 使用匿名卷，让 Docker 使用镜像里的 node_modules
+      - /app/MaimWeb/node_modules
+
+    # 网络配置引用
+    networks:
+      custom_network:
+        # 必须指定一个固定 IP，确保不与局域网其他设备冲突
+        # 这里默认分配 .222，如果冲突请修改
+        ipv4_address: 10.42.0.222
+
+    # DNS 设置 (直接使用外部路由器 DNS)
+    dns:
+      - 10.42.0.17
+
+    # 环境变量 (如需覆盖 Dockerfile 中的默认值)
+    environment:
+      - MAIM_ENV=production
+
+networks:
+  custom_network:
+    driver: macvlan
+    driver_opts:
+      parent: enp6s18 # 宿主机物理网卡名称
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.42.0.0/24
+          gateway: 10.42.0.17
+          # 限制 IP 范围以避免和其他设备冲突 (可选)
+          # ip_range: 10.42.0.192/27
