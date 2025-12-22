@@ -5,14 +5,14 @@ import sys
 # Configuration
 BASE_DIR = "/home/tcmofashi/proj"
 REPOS = [
-    "MaiMBot",
     "MaimConfig",
     "MaimWeb",
     "maim_db",
-    "maim_message"
+    "maim_message",
+    "MaimWebBackend" 
 ]
 EXCLUDE_REPOS = [
-    "MaimWebBackend"  # Start by ignoring the Replier Backend
+    "MaiMBot", # Start by ignoring the Replier Backend
 ]
 
 def run_command(command, cwd):

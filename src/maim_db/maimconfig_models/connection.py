@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 # 创建异步引擎
 # 创建异步引擎
+# 创建异步引擎
 engine_args = {
     "echo": settings.debug,
 }
@@ -23,6 +24,10 @@ if "sqlite" not in settings.database_url:
         "pool_pre_ping": True,
         "pool_recycle": 3600,
     })
+
+# SQLAlchemy 2.0+ / aiosqlite special handling: ensure no pool args for sqlite if implied NullPool
+# logic above handles it by only adding them if NOT sqlite.
+# effectively engine_args only has 'echo' for sqlite.
 
 engine = create_async_engine(
     settings.database_url,
