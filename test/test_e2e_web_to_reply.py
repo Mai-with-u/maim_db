@@ -94,6 +94,48 @@ async def test_e2e_flow():
                 tenant_id = agent_data["tenant_id"]
                 print(f"   ✅ Agent created: {agent_id} (Tenant: {tenant_id})")
 
+            # 3.1 Update Agent Configuration (Test New Fields)
+            print(f"\n[3.1/5] Updating Agent Configuration with new fields...")
+            update_payload = {
+                "config": {
+                    "config_overrides": {
+                        "message_receive": {
+                            "ban_words": ["badword1", "badword2"],
+                            "ban_msgs_regex": ["^bad.*$"]
+                        },
+                        "memory": {
+                            "max_agent_iterations": 10,
+                            "enable_jargon_detection": True
+                        },
+                        "expression": {
+                            "reflect": True,
+                            "reflect_operator_id": "op_123",
+                            "allow_reflect": ["chat_1"]
+                        }
+                    }
+                }
+            }
+            async with session.put(f"{WEB_API_URL}/agents/{agent_id}", json=update_payload, headers=headers) as resp:
+                if resp.status != 200:
+                    text = await resp.text()
+                    raise Exception(f"Update Agent failed ({resp.status}): {text}")
+                updated_agent = await resp.json()
+                
+                # Verification
+                config = updated_agent.get("config", {})
+                mr = config.get("config_overrides", {}).get("message_receive", {})
+                mem = config.get("config_overrides", {}).get("memory", {})
+                exp = config.get("config_overrides", {}).get("expression", {})
+
+                if mr.get("ban_words") != ["badword1", "badword2"]:
+                    raise Exception(f"Verification Failed: ban_words mismatch. Got {mr.get('ban_words')}")
+                if mem.get("max_agent_iterations") != 10:
+                    raise Exception(f"Verification Failed: max_agent_iterations mismatch. Got {mem.get('max_agent_iterations')}")
+                if exp.get("reflect") is not True:
+                    raise Exception(f"Verification Failed: reflect mismatch. Got {exp.get('reflect')}")
+                
+                print("   ✅ Configuration update verified successfully (New Fields Persisted)")
+
             # 3.5 Enable hello_world_plugin (Via WebProxy)
             print(f"\n[3.5/5] Enabling hello_world_plugin...")
             plugin_payload = {

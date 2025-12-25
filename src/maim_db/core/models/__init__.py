@@ -17,6 +17,7 @@ from .system_v2 import (
     Agent,
     ApiKey,
     AgentActiveState,
+    User as UserV2,
 )
 
 # 导入Agent配置模型
@@ -26,6 +27,7 @@ from .agent_config import (
     ChatConfigOverrides,
     ExpressionConfigOverrides,
     MemoryConfigOverrides,
+    MessageReceiveConfigOverrides,
     MoodConfigOverrides,
     EmojiConfigOverrides,
     ToolConfigOverrides,
@@ -33,6 +35,9 @@ from .agent_config import (
     PluginConfigOverrides,
     KeywordReactionConfigOverrides,
     RelationshipConfigOverrides,
+    APIProviderModel,
+    ModelInfoModel,
+    ModelConfigOverrides,
     # 工具函数和常量
     generate_config_id,
     parse_json_field,
@@ -66,7 +71,9 @@ V2_MODELS = [
     Tenant,
     Agent,
     ApiKey,
+    ApiKey,
     AgentActiveState,
+    UserV2,
 ]
 
 # Agent配置模型列表
@@ -76,6 +83,7 @@ AGENT_CONFIG_MODELS = [
     ChatConfigOverrides,
     ExpressionConfigOverrides,
     MemoryConfigOverrides,
+    MessageReceiveConfigOverrides,
     MoodConfigOverrides,
     EmojiConfigOverrides,
     ToolConfigOverrides,
@@ -83,6 +91,8 @@ AGENT_CONFIG_MODELS = [
     PluginConfigOverrides,
     KeywordReactionConfigOverrides,
     RelationshipConfigOverrides,
+    APIProviderModel,
+    ModelInfoModel,
 ]
 
 # 业务模型列表（保持不变）
@@ -115,6 +125,7 @@ __all__ = [
     "ApiKeyStatus",
     # v2系统模型
     "BaseModel",
+    "UserV2",
     "Tenant",
     "Agent",
     "ApiKey",
@@ -125,6 +136,7 @@ __all__ = [
     "ChatConfigOverrides",
     "ExpressionConfigOverrides",
     "MemoryConfigOverrides",
+    "MessageReceiveConfigOverrides",
     "MoodConfigOverrides",
     "EmojiConfigOverrides",
     "ToolConfigOverrides",
@@ -132,6 +144,9 @@ __all__ = [
     "PluginConfigOverrides",
     "KeywordReactionConfigOverrides",
     "RelationshipConfigOverrides",
+    "APIProviderModel",
+    "ModelInfoModel",
+    "ModelConfigOverrides",
     # 业务模型
     "BusinessBaseModel",
     "ChatHistory",

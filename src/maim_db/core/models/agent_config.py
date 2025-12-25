@@ -114,6 +114,10 @@ class ExpressionConfigOverrides(AgentConfigBaseModel):
     learning_list = TextField(default="[]", help_text="表达学习配置JSON数组")
     expression_groups = TextField(default="[]", help_text="表达学习互通组JSON数组")
 
+    reflect = BooleanField(default=False, help_text="启用表达反思")
+    reflect_operator_id = CharField(max_length=50, default="", help_text="表达反思操作员ID")
+    allow_reflect = TextField(default="[]", help_text="允许反思的聊天流JSON数组")
+
     class Meta:
         table_name = "expression_config_overrides"
         indexes = (
@@ -129,6 +133,8 @@ class MemoryConfigOverrides(AgentConfigBaseModel):
 
     max_memory_number = IntegerField(default=100, help_text="记忆最大数量")
     memory_build_frequency = IntegerField(default=1, help_text="记忆构建频率")
+    max_agent_iterations = IntegerField(default=5, help_text="Agent最多迭代轮数")
+    enable_jargon_detection = BooleanField(default=True, help_text="记忆检索过程中是否启用黑话识别")
 
     class Meta:
         table_name = "memory_config_overrides"
@@ -432,14 +438,87 @@ class TelemetryConfig(AgentConfigBaseModel):
             (('agent_id',), False),
         )
 
+class MessageReceiveConfigOverrides(AgentConfigBaseModel):
+    """消息接收配置覆盖模型"""
+
+    id = CharField(primary_key=True, max_length=50, help_text="配置ID")
+    agent_id = CharField(max_length=50, help_text="关联的Agent ID")
+
+    ban_words = TextField(default="[]", help_text="过滤词JSON数组")
+    ban_msgs_regex = TextField(default="[]", help_text="过滤正则JSON数组")
+
+    class Meta:
+        table_name = "message_receive_config_overrides"
+        indexes = (
+            (('agent_id',), False),
+        )
+
+
+class APIProviderModel(AgentConfigBaseModel):
+    """API提供商配置模型 - 独立表存储以支持权限隔离"""
+
+    id = CharField(primary_key=True, max_length=50, help_text="配置ID")
+    agent_id = CharField(max_length=50, help_text="关联的Agent ID")
+
+    # 核心字段
+    name = CharField(max_length=100, help_text="提供商代号")
+    client_type = CharField(max_length=50, default="openai", help_text="客户端类型")
+    base_url = CharField(max_length=500, null=True, help_text="API基础URL")
+
+    # 敏感字段
+    api_key = CharField(max_length=500, null=True, help_text="API密钥")
+
+    # 策略字段
+    is_server_provider = BooleanField(default=False, help_text="是否为服务端预设")
+
+    class Meta:
+        table_name = "api_provider_configs"
+        indexes = (
+            (('agent_id',), False),
+            (('agent_id', 'name'), True),  # 每个Agent下的Provider名称唯一
+        )
+
+
+class ModelInfoModel(AgentConfigBaseModel):
+    """模型信息配置模型 - 独立表存储"""
+
+    id = CharField(primary_key=True, max_length=50, help_text="配置ID")
+    agent_id = CharField(max_length=50, help_text="关联的Agent ID")
+
+    # 核心字段
+    name = CharField(max_length=100, help_text="模型代号")
+    model_identifier = CharField(max_length=100, help_text="实际模型ID")
+
+    # 关联
+    provider_name = CharField(max_length=100, help_text="关联APIProvider名称")
+
+    # 参数
+    temperature = FloatField(null=True, help_text="温度")
+    price_in = FloatField(default=0.0, help_text="输入价格")
+    price_out = FloatField(default=0.0, help_text="输出价格")
+
+    # 高级参数
+    extra_params = TextField(default="{}", help_text="额外参数JSON对象")
+
+    class Meta:
+        table_name = "model_info_configs"
+        indexes = (
+            (('agent_id',), False),
+            (('agent_id', 'name'), True),  # 每个Agent下的Model名称唯一
+        )
+
+
 class ModelConfigOverrides(AgentConfigBaseModel):
     """模型配置覆盖模型"""
 
     id = CharField(primary_key=True, max_length=50, help_text="配置ID")
     agent_id = CharField(max_length=50, help_text="关联的Agent ID")
 
-    models = TextField(default="[]", help_text="模型列表JSON数组")
-    api_providers = TextField(default="[]", help_text="API提供商列表JSON数组")
+    # models 和 api_providers 字段现已废弃，改用上述独立表
+    # 保留字段以作为容器或兼容性，但主要使用 model_task_config
+    models = TextField(default="[]", help_text="[废弃] 模型列表JSON数组")
+    api_providers = TextField(default="[]", help_text="[废弃] API提供商列表JSON数组")
+    
     model_task_config = TextField(default="{}", help_text="模型任务配置JSON对象")
 
     class Meta:
@@ -501,7 +580,10 @@ AGENT_CONFIG_MODELS = [
     ExperimentalConfig,
     MaimMessageConfig,
     TelemetryConfig,
+    MessageReceiveConfigOverrides,
     ModelConfigOverrides,
+    APIProviderModel,
+    ModelInfoModel,
 ]
 
 # 配置类型映射
@@ -528,7 +610,10 @@ CONFIG_TYPE_MAPPING = {
     "experimental": ExperimentalConfig,
     "maim_message": MaimMessageConfig,
     "telemetry": TelemetryConfig,
+    "message_receive": MessageReceiveConfigOverrides,
     "model": ModelConfigOverrides,
+    "api_providers": APIProviderModel,
+    "model_info": ModelInfoModel,
 }
 
 __all__ = [
@@ -555,7 +640,12 @@ __all__ = [
     'ExperimentalConfig',
     'MaimMessageConfig',
     'TelemetryConfig',
+    'MessageReceiveConfigOverrides',
     'ModelConfigOverrides',
+    'APIProviderModel',
+    'ModelInfoModel',
+
+    # 工具函数
 
     # 工具函数
     'generate_config_id',

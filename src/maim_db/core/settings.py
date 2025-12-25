@@ -5,6 +5,14 @@
 
 import os
 
+# 加载.env文件中的环境变量
+try:
+    from dotenv import load_dotenv
+    # 尝试从当前工作目录加载.env
+    load_dotenv()
+except ImportError:
+    pass  # 如果没有安装python-dotenv也可以正常工作
+
 
 class Settings:
     """应用配置 - 兼容maimconfig的配置格式"""

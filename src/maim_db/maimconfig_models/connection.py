@@ -62,6 +62,19 @@ async def get_db() -> AsyncSession:
             await session.close()
 
 
+
+# 启用 WAL 模式 (对于 SQLite)
+if "sqlite" in settings.database_url:
+    from sqlalchemy import event
+    
+    @event.listens_for(engine.sync_engine, "connect")
+    def set_sqlite_pragma(dbapi_connection, connection_record):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA journal_mode=DELETE")
+        cursor.execute("PRAGMA synchronous=NORMAL")
+        cursor.close()
+
+
 async def init_database() -> None:
     """初始化数据库连接"""
     try:

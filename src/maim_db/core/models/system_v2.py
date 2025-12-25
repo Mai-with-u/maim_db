@@ -66,6 +66,28 @@ class BaseModel(Model):
         database = get_database()
 
 
+class User(BaseModel):
+    """用户表 - 基于MaiMConfig设计"""
+
+    id = CharField(primary_key=True, max_length=50, help_text="用户ID")
+    username = CharField(max_length=100, unique=True, index=True, help_text="用户名")
+    email = CharField(max_length=255, unique=True, index=True, null=True, help_text="邮箱")
+    hashed_password = CharField(max_length=255, help_text="加密密码")
+    is_active = BooleanField(default=True, help_text="是否活跃")
+    
+    created_at = DateTimeField(default=datetime.utcnow, help_text="创建时间")
+    updated_at = DateTimeField(default=datetime.utcnow, help_text="更新时间")
+
+    class Meta:
+        table_name = "users"
+        database = get_database()
+
+    def save(self, *args, **kwargs):
+        """保存时更新时间戳"""
+        self.updated_at = datetime.utcnow()
+        return super().save(*args, **kwargs)
+
+
 class Tenant(BaseModel):
     """租户表 - 基于MaiMConfig设计"""
 

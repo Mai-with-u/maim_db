@@ -152,12 +152,12 @@ class DatabaseManager:
         return SqliteDatabase(
             db_path,
             pragmas={
-                "journal_mode": "wal",        # WAL模式提高并发性能
+                "journal_mode": "DELETE",    # 回退到DELETE模式
                 "cache_size": -64 * 1000,    # 64MB缓存
                 "foreign_keys": 1,           # 启用外键约束
                 "ignore_check_constraints": 0,
-                "synchronous": 0,            # 异步写入提高性能
-                "busy_timeout": 1000,        # 1秒超时
+                "synchronous": 1,            # NORMAL sync for better stability
+                "busy_timeout": 30000,       # 30秒超时
             },
         )
 
