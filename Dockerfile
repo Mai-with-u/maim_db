@@ -1,149 +1,76 @@
-# Dockerfile for All-in-One MaiMBot Environment
-#
-# 使用方法 (在包含所有项目的父目录下运行):
-# docker build -t maim-all-in-one -f maim_db/Dockerfile .
-#
-# 启动容器 (挂载数据目录):
-# docker run -d -p 8000:8000 -p 18042:18042 -p 8880:8880 -p 5173:5173 -v $(pwd)/data:/app/data maim-all-in-one
+# 使用 Python 3.12 作为基础镜像
+FROM python:3.12-slim
 
-# -----------------------------------------------------------------------------
-# Stage 1: 基础镜像构建 (包含 Python 和 Node.js)
-# -----------------------------------------------------------------------------
-FROM python:3.12-slim as base
+# 设置环境变量，避免交互式提示
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
 
-# 设置环境变量
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    DEBIAN_FRONTEND=noninteractive \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
-
-# 安装系统依赖 (包含 Node.js, ffmpeg, git, supervisord, openssh-server)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
+# 更新系统并安装必要工具 (git, nodejs, npm, build-essential for compiling deps)
+RUN apt-get update && apt-get install -y \
     git \
-    ffmpeg \
-    supervisor \
-    openssh-server \
+    nodejs \
+    npm \
     build-essential \
-    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# SSH 配置
-RUN mkdir /var/run/sshd \
-    && echo 'root:root' | chpasswd \
-    && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config \
-    # 修复 PAM导致的连接断开问题
-    && sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
 # 设置工作目录
-WORKDIR /app
+WORKDIR /workspace
 
-# -----------------------------------------------------------------------------
-# Stage 2: 依赖安装 (利用 Docker 缓存层级)
-# -----------------------------------------------------------------------------
-# 1. 优先复制并安装基础库 (maim_db, maim_message)
-# 假设构建上下文是项目根目录，包含 maim_db, maim_message 等文件夹
+# 1. 克隆所有仓库
+# MaimConfigs (注意: 假设 MaimConfig 也在 Mai-with-u 组织下，如果不是，需要调整)
+RUN git clone https://github.com/Mai-with-u/MaimConfig.git
+RUN git clone https://github.com/Mai-with-u/MaimWebBackend.git
+RUN git clone https://github.com/Mai-with-u/MaimWeb.git
+RUN git clone https://github.com/Mai-with-u/maim_db.git
+# COPY . /workspace/maim_db
+RUN git clone https://github.com/Mai-with-u/maim_message.git
 
-# maim_db 依赖
-COPY maim_db/pyproject.toml maim_db/requirements.t[xt] /app/maim_db/
-# maim_message 依赖
-COPY maim_message/pyproject.toml maim_message/requirements.t[xt] /app/maim_message/
+# MaiMBot (特殊分支 saas)
+RUN git clone -b saas https://github.com/tcmofashi/MaiMBot.git
 
-# 安装基础库 (暂不复制代码，只安装依赖)
-# 注意：如果 pyproject.toml 包含动态版本号读取，可能需要源码。
-# 这里先安装依赖文件中的包
-RUN if [ -f /app/maim_db/requirements.txt ]; then pip install -r /app/maim_db/requirements.txt; fi \
-    && if [ -f /app/maim_message/requirements.txt ]; then pip install -r /app/maim_message/requirements.txt; fi
+# 2. 安装 Python 依赖
+# 为了方便管理，我们创建一个聚合的 requirements.txt 或者逐个安装
 
-# 2. 复制应用层依赖
-COPY MaimConfig/requirements.txt /app/MaimConfig/
-COPY MaiMBot/requirements.txt /app/MaiMBot/
-COPY MaimWebBackend/requirements.txt /app/MaimWebBackend/
-COPY MaimWeb/package.json MaimWeb/package-lock.jso[n] /app/MaimWeb/
+# maim_db
+WORKDIR /workspace/maim_db
+RUN pip install .
+RUN pip install aiosqlite
 
-# 3. 安装应用层依赖 (Python)
-RUN pip install -r /app/MaimConfig/requirements.txt \
-    && pip install -r /app/MaiMBot/requirements.txt \
-    && pip install -r /app/MaimWebBackend/requirements.txt
+# MaimConfig
+WORKDIR /workspace/MaimConfig
+RUN pip install -r requirements.txt
 
-# 4. 安装前端依赖 (Node)
-WORKDIR /app/MaimWeb
+# MaimWebBackend (Uses pyproject.toml)
+WORKDIR /workspace/MaimWebBackend
+RUN pip install .
+
+# MaiMBot
+WORKDIR /workspace/MaiMBot
+RUN pip install -r requirements.txt
+
+# maim_message (Uses pyproject.toml/setup.py)
+WORKDIR /workspace/maim_message
+RUN pip install .
+
+# 3. 构建前端 MaimWeb
+WORKDIR /workspace/MaimWeb
 RUN npm install
-WORKDIR /app
+RUN npm run build
 
-# -----------------------------------------------------------------------------
-# Stage 3: 代码注入与最终配置
-# -----------------------------------------------------------------------------
-# 注意：作为开发环境，我们不再复制源码到镜像中，而是通过 docker-compose 挂载
-# 这样不仅构建更快，而且修改代码无需重建镜像
-# COPY ... (已移除)
+# 4. 回到根目录
+WORKDIR /workspace
 
-# 创建必要的目录
-RUN mkdir -p /app/data /app/logs
+# 暴露端口 (根据各服务默认端口)
+# MaimConfig: 8000
+# MaimWebBackend: 8880
+# MaimWeb: 5173 (Dev) or Nginx port
+# MaiMBot: 8090 (WebSocket)
 
-# 生成 Supervisor 配置文件
-# 注意：因为源码是运行时挂载的，这里只生成配置，不检查文件是否存在
-RUN echo "[supervisord]\n\
-    nodaemon=true\n\
-    logfile=/app/logs/supervisord.log\n\
-    \n\
-    [program:sshd]\n\
-    command=/usr/sbin/sshd -D\n\
-    stdout_logfile=/dev/stdout\n\
-    stdout_logfile_maxbytes=0\n\
-    stderr_logfile=/dev/stderr\n\
-    stderr_logfile_maxbytes=0\n\
-    \n\
-    [program:maimconfig]\n\
-    command=python src/main.py\n\
-    directory=/app/MaimConfig\n\
-    stdout_logfile=/dev/stdout\n\
-    stdout_logfile_maxbytes=0\n\
-    stderr_logfile=/dev/stderr\n\
-    stderr_logfile_maxbytes=0\n\
-    environment=DATABASE_URL='sqlite+aiosqlite:////app/data/MaiBot.db'\n\
-    \n\
-    [program:maimbot]\n\
-    command=python bot.py\n\
-    directory=/app/MaiMBot\n\
-    stdout_logfile=/dev/stdout\n\
-    stdout_logfile_maxbytes=0\n\
-    stderr_logfile=/dev/stderr\n\
-    stderr_logfile_maxbytes=0\n\
-    environment=MAIMCONFIG_URL='http://localhost:8000',DATABASE_URL='sqlite+aiosqlite:////app/data/MaiBot.db'\n\
-    \n\
-    [program:maimwebbackend]\n\
-    command=python start.py\n\
-    directory=/app/MaimWebBackend\n\
-    stdout_logfile=/dev/stdout\n\
-    stdout_logfile_maxbytes=0\n\
-    stderr_logfile=/dev/stderr\n\
-    stderr_logfile_maxbytes=0\n\
-    environment=MAIMCONFIG_API_URL='http://localhost:8000/api/v1',DATABASE_URL='sqlite+aiosqlite:////app/data/MaiBot.db'\n\
-    \n\
-    [program:maimweb]\n\
-    command=npm run dev -- --host 0.0.0.0\n\
-    directory=/app/MaimWeb\n\
-    stdout_logfile=/dev/stdout\n\
-    stdout_logfile_maxbytes=0\n\
-    stderr_logfile=/dev/stderr\n\
-    stderr_logfile_maxbytes=0\n\
-    " > /etc/supervisor/conf.d/maim_all.conf
+EXPOSE 8000 8880 5173 8090
 
-# 环境变量设置
-# 通过 PYTHONPATH 让 Python 能直接引用挂载进来的 maim_db 和 maim_message
-ENV PYTHONPATH=/app/maim_db/src:/app/maim_message/src:$PYTHONPATH
-ENV MAIM_ENV=production
+# 启动脚本 (需要另外创建一个 start_all.sh entrypoint)
+COPY start_all_docker.sh /workspace/start_all_docker.sh
+RUN chmod +x /workspace/start_all_docker.sh
 
-# 暴露端口
-# 22: SSH
-# 8000: MaimConfig
-# 18042: MaiMBot WebSocket
-# 8880: MaimWebBackend
-# 5173: MaimWeb Frontend (Vite Dev)
-EXPOSE 22 8000 18042 8880 5173
-
-# 启动命令
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/maim_all.conf"]
+ENTRYPOINT ["/workspace/start_all_docker.sh"]
