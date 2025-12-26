@@ -30,9 +30,35 @@ echo "--- END DEBUG ---"
 cat <<EOF > /workspace/init_db.py
 import asyncio
 import os
+import sys
+import importlib.util
+
 # Ensure environment variable is set for the script context as well
 os.environ["DATABASE_URL"] = "${DATABASE_URL}"
-from maim_db.maimconfig_models.models import create_tables
+
+print(f"DEBUG: sys.path: {sys.path}", flush=True)
+
+try:
+    import maim_db
+    print(f"DEBUG: maim_db imported from {maim_db.__file__}", flush=True)
+    
+    # Try finding spec for subpackage
+    spec = importlib.util.find_spec("maim_db.maimconfig_models")
+    print(f"DEBUG: find_spec('maim_db.maimconfig_models'): {spec}", flush=True)
+
+    # Try explicit import
+    import maim_db.maimconfig_models.models as models
+    print(f"DEBUG: successfully imported models from {models.__file__}", flush=True)
+    create_tables = models.create_tables
+except ImportError as e:
+    print(f"CRITICAL ERROR importing maim_db models: {e}", flush=True)
+    # List directory of maim_db again just to be sure
+    if 'maim_db' in locals():
+        print(f"maim_db dir: {os.listdir(os.path.dirname(maim_db.__file__))}", flush=True)
+        pkg_path = os.path.join(os.path.dirname(maim_db.__file__), 'maimconfig_models')
+        if os.path.exists(pkg_path):
+             print(f"maimconfig_models dir content: {os.listdir(pkg_path)}", flush=True)
+    raise
 
 async def main():
     print("Creating tables...", flush=True)

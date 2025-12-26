@@ -14,6 +14,9 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
+# Install uv (The extremely fast Python package installer)
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
+
 # 设置工作目录
 WORKDIR /workspace
 
@@ -29,29 +32,27 @@ RUN git clone https://github.com/Mai-with-u/maim_message.git
 # MaiMBot (特殊分支 saas)
 RUN git clone -b saas https://github.com/tcmofashi/MaiMBot.git
 
-# 2. 安装 Python 依赖
-# 为了方便管理，我们创建一个聚合的 requirements.txt 或者逐个安装
-
+# 2. 安装 Python 依赖 (使用 uv)
 # maim_db
 WORKDIR /workspace/maim_db
-RUN pip install .
-RUN pip install aiosqlite
+RUN uv pip install --system .
+RUN uv pip install --system aiosqlite
 
 # MaimConfig
 WORKDIR /workspace/MaimConfig
-RUN pip install -r requirements.txt
+RUN uv pip install --system -r requirements.txt
 
 # MaimWebBackend (Uses pyproject.toml)
 WORKDIR /workspace/MaimWebBackend
-RUN pip install .
+RUN uv pip install --system .
 
 # MaiMBot
 WORKDIR /workspace/MaiMBot
-RUN pip install -r requirements.txt
+RUN uv pip install --system -r requirements.txt
 
 # maim_message (Uses pyproject.toml/setup.py)
 WORKDIR /workspace/maim_message
-RUN pip install .
+RUN uv pip install --system .
 
 # 3. 构建前端 MaimWeb
 WORKDIR /workspace/MaimWeb
