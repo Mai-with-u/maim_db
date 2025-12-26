@@ -46,7 +46,7 @@ from maim_message.client import create_client_config
 from maim_message.client_ws_api import WebSocketClient
 
 # Configuration
-WS_URL = os.getenv("MAIM_MESSAGE_WS_URL", "ws://localhost:18042/ws")
+WS_URL = os.getenv("MAIM_MESSAGE_WS_URL", "ws://localhost:8090/ws")
 TEST_MESSAGE = "你好，这是端到端验证测试消息！"
 
 
