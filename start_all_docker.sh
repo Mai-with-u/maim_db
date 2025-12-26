@@ -6,8 +6,8 @@ cd /workspace/MaimConfig
 mkdir -p /workspace/data/shared  # Shared DB directory
 # 设置环境变量: 指向共享数据库
 export MAIMCONFIG_DB_PATH=${MAIMCONFIG_DB_PATH:-"/workspace/data/shared/MaiBot.db"}
-# Explicitly set DATABASE_URL for MaimConfig to prevent .env leakage
-export DATABASE_URL="${MAIMCONFIG_DB_PATH}"
+# Explicitly set DATABASE_URL for MaimConfig ensuring it is a valid URI (4 slashes for absolute path)
+export DATABASE_URL="sqlite+aiosqlite:///${MAIMCONFIG_DB_PATH}"
 export MAIMCONFIG_URL="http://127.0.0.1:8000"
 # 确保数据库存在，或者让其自动创建
 python main.py &
@@ -24,6 +24,8 @@ export DATABASE_URL="sqlite+aiosqlite:////workspace/data/web/maim_web.db"
 echo "Initializing Backend Database..."
 echo "--- DEBUG INFO ---"
 python3 -c "import maim_db; print(f'maim_db path: {maim_db.__file__}'); import os; print(f'maim_db dir contents: {os.listdir(os.path.dirname(maim_db.__file__))}')"
+echo "Checking maimconfig_models contents:"
+ls -R $(python3 -c "import maim_db, os; print(os.path.join(os.path.dirname(maim_db.__file__), 'maimconfig_models'))")
 echo "--- END DEBUG ---"
 cat <<EOF > /workspace/init_db.py
 import asyncio
