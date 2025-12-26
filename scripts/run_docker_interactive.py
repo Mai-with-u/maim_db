@@ -145,6 +145,16 @@ def main():
     cmd.extend(["-v", f"{data_dir}:/workspace/data"])
     print(f"✅ 将挂载数据目录: {data_dir} -> /workspace/data")
     
+    # Unified Data Mount
+    cmd.extend(["-v", f"{data_dir}:/workspace/data"])
+    print(f"✅ 将挂载数据目录: {data_dir} -> /workspace/data")
+    
+    # Environment Variables for Path Resolution
+    cmd.extend([
+        "-e", "MAIMBOT_MODEL_CONFIG_PATH=/workspace/MaiMBot/config/model_config.toml",
+        "-e", "MAIMBOT_BOT_CONFIG_TEMPLATE_PATH=/workspace/MaiMBot/template/bot_config_template.toml"
+    ])
+    
     cmd.append(image_name)
 
     # 5. Clean up old container
