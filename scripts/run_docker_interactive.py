@@ -93,9 +93,14 @@ def main():
         "bot_config.toml"
     )
     env_file_path = get_path_or_template(
-        "请输入本地 .env 文件路径 (回车自动生成): ", 
+        "请输入本地 MaiMBot .env 文件路径 (回车自动生成): ", 
         ".env", 
         ".env"
+    )
+    maimconfig_env_path = get_path_or_template(
+        "请输入本地 MaimConfig .env 文件路径 (回车自动生成): ",
+        "maimconfig.env",
+        "maimconfig.env"
     )
 
     # 3. Data Persistence
@@ -130,7 +135,11 @@ def main():
 
     if env_file_path:
         cmd.extend(["-v", f"{env_file_path}:/workspace/MaiMBot/.env"])
-        print(f"✅ 将挂载 .env: {env_file_path}")
+        print(f"✅ 将挂载 MaiMBot .env: {env_file_path}")
+
+    if maimconfig_env_path:
+        cmd.extend(["-v", f"{maimconfig_env_path}:/workspace/MaimConfig/.env"])
+        print(f"✅ 将挂载 MaimConfig .env: {maimconfig_env_path}")
 
     # Unified Data Mount
     cmd.extend(["-v", f"{data_dir}:/workspace/data"])

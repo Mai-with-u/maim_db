@@ -6,6 +6,8 @@ cd /workspace/MaimConfig
 mkdir -p /workspace/data/shared  # Shared DB directory
 # 设置环境变量: 指向共享数据库
 export MAIMCONFIG_DB_PATH=${MAIMCONFIG_DB_PATH:-"/workspace/data/shared/MaiBot.db"}
+# Explicitly set DATABASE_URL for MaimConfig to prevent .env leakage
+export DATABASE_URL="${MAIMCONFIG_DB_PATH}"
 export MAIMCONFIG_URL="http://127.0.0.1:8000"
 # 确保数据库存在，或者让其自动创建
 python main.py &
