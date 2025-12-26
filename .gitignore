@@ -99,7 +99,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
+# .env
 .venv
 env/
 venv/
@@ -180,4 +180,4 @@ Thumbs.db
 *.lnk
 
 # Linux
-*~
+*~config/

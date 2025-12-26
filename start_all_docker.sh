@@ -3,22 +3,26 @@
 # 启动 MaimConfig (Port 8000)
 echo "Starting MaimConfig..."
 cd /workspace/MaimConfig
-mkdir -p data  # Fix: Ensure data directory exists for sqlite
-# 设置环境变量
-export MAIMCONFIG_DB_PATH=${MAIMCONFIG_DB_PATH:-"/workspace/data/maimconfig.db"}
+mkdir -p /workspace/data/shared  # Shared DB directory
+# 设置环境变量: 指向共享数据库
+export MAIMCONFIG_DB_PATH=${MAIMCONFIG_DB_PATH:-"/workspace/data/shared/MaiBot.db"}
+export MAIMCONFIG_URL="http://127.0.0.1:8000"
 # 确保数据库存在，或者让其自动创建
 python main.py &
 
 # 启动 MaimWebBackend (Port 8880)
 echo "Starting MaimWebBackend..."
 cd /workspace/MaimWebBackend
-# 需要设置正确的 DATABASE_URL 等环境变量，建议在运行时传入或在此处设置默认值
-export DATABASE_URL=${DATABASE_URL:-"sqlite+aiosqlite:////workspace/data/maim_web.db"}
-# 临时修复：确保数据目录存在
-mkdir -p /workspace/data
+mkdir -p /workspace/data/web  # Specific subdir for Web Backend
+# 需要设置正确的 DATABASE_URL 等环境变量
+# 注意：使用特定子目录，与 Bot/Config 分开
+export DATABASE_URL="sqlite+aiosqlite:////workspace/data/web/maim_web.db"
 
 # 初始化数据库 (Create Tables)
 echo "Initializing Backend Database..."
+echo "--- DEBUG INFO ---"
+python3 -c "import maim_db; print(f'maim_db path: {maim_db.__file__}'); import os; print(f'maim_db dir contents: {os.listdir(os.path.dirname(maim_db.__file__))}')"
+echo "--- END DEBUG ---"
 cat <<EOF > /workspace/init_db.py
 import asyncio
 import os
@@ -41,12 +45,22 @@ python -m uvicorn src.main:app --host 0.0.0.0 --port 8880 &
 # 启动 MaiMBot
 echo "Starting MaiMBot..."
 cd /workspace/MaiMBot
-mkdir -p data # Ensure data dir exists
 mkdir -p config
 if [ ! -f config/bot_config.toml ]; then
     echo "Copying default bot config..."
     cp template/bot_config_template.toml config/bot_config.toml
 fi
+# 使用环境变量指定数据库路径 (适配 env_loader.py)
+# 使用环境变量指定数据库路径 (适配 env_loader.py)
+# 指向与 MaimConfig 相同的共享数据库
+export DATABASE_URL="sqlite:////workspace/data/shared/MaiBot.db"
+
+# MaiMBot Message Config (From .env migration)
+export MAIM_MESSAGE_HOST="127.0.0.1"
+export MAIM_MESSAGE_PORT="8090"
+export MAIM_MESSAGE_MODE="ws"
+export MAIM_MESSAGE_USE_WSS="false"
+
 # 如果配置文件不存在，跳过 MaiMBot 启动
 if [ -f "config/bot_config.toml" ]; then
     python bot.py &

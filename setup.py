@@ -17,7 +17,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/maim-project/maim_db",
     package_dir={"": "src"},
-    packages=find_packages(where="src"),
+    packages=["maim_db", "maim_db.core", "maim_db.maimconfig_models"],
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
