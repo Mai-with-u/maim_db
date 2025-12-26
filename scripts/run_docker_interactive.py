@@ -154,6 +154,11 @@ def main():
         "-e", "MAIMBOT_MODEL_CONFIG_PATH=/workspace/MaiMBot/config/model_config.toml",
         "-e", "MAIMBOT_BOT_CONFIG_TEMPLATE_PATH=/workspace/MaiMBot/template/bot_config_template.toml"
     ])
+
+    # Mount Startup Script (Hotfix)
+    start_script = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "start_all_docker.sh"))
+    cmd.extend(["-v", f"{start_script}:/workspace/start_all_docker.sh"])
+    print(f"✅ 将挂载启动脚本: {start_script} -> /workspace/start_all_docker.sh")
     
     cmd.append(image_name)
 

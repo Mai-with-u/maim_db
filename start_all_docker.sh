@@ -86,10 +86,7 @@ fi
 export DATABASE_URL="sqlite:////workspace/data/shared/MaiBot.db"
 
 # MaiMBot Message Config (From .env migration)
-export MAIM_MESSAGE_HOST="127.0.0.1"
-export MAIM_MESSAGE_PORT="8090"
-export MAIM_MESSAGE_MODE="ws"
-export MAIM_MESSAGE_USE_WSS="false"
+# Removed hardcoded exports to allow .env loading or Docker -e flags
 
 # 如果配置文件不存在，跳过 MaiMBot 启动
 if [ -f "config/bot_config.toml" ]; then
