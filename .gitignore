@@ -151,6 +151,7 @@ logs/
 *.log
 config/local_config.py
 config/secrets.py
+config/.env
 
 # Project specific - Backup files
 backup_models/
