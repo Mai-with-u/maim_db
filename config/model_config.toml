@@ -59,6 +59,13 @@ enable_thinking = false # 不启用思考
 # temperature = 0.5    # 可选：为该模型单独指定温度，会覆盖任务配置中的温度
 
 [[models]]
+model_identifier = "deepseek-ai/DeepSeek-V3"
+name = "siliconflow-deepseek-v3"
+api_provider = "SiliconFlow"
+price_in = 2.0
+price_out = 4.0
+
+[[models]]
 model_identifier = "deepseek-ai/DeepSeek-V3.2-Exp"
 name = "siliconflow-deepseek-v3.2-think"
 api_provider = "SiliconFlow"    
@@ -156,7 +163,7 @@ max_tokens = 2048
 slow_threshold = 25.0
 
 [model_task_config.planner] #决策：负责决定麦麦该什么时候回复的模型
-model_list = ["siliconflow-deepseek-v3.2"]
+model_list = ["siliconflow-deepseek-v3"]
 temperature = 0.3
 max_tokens = 800
 slow_threshold = 12.0
