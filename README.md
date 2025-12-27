@@ -2,6 +2,28 @@
 
 `maim_db` 是 MaiM 全栈的统一数据平面，提供 Peewee 模型、多租户（基于 agent_id）上下文隔离、连接管理与迁移入口。所有服务共享这里的模型与迁移，其他仓库只消费，不自建表。
 
+## 🚀 极速一键启动 (Docker)
+
+无需配置复杂的本地环境，使用我们的一键脚本启动包含所有服务（Config, Bot, Web, Backend）的开发环境：
+
+```bash
+# 1. 确保已安装 Docker
+# 2. 运行交互式启动脚本
+python scripts/run_docker_interactive.py
+```
+
+脚本会自动：
+- 🐳 **启动所有服务**：在一个容器内同时运行 Bot, Config, Web前端, Web后端。
+- 📂 **挂载配置**：自动挂载或生成本地配置文件（`config/*.toml`, `.env`），修改即时生效。
+- 💾 **数据持久化**：挂载本地 `data/` 目录，数据库文件不随容器丢失。
+- 🌐 **自动网络配置**：已预配置端口映射与 `0.0.0.0` 绑定，开箱即用。
+
+**服务访问地址：**
+- **WebUI (前端页面)**: [http://localhost:5173](http://localhost:5173)
+- **MaimConfig (配置中心 API)**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **MaimWebBackend (后端 API)**: [http://localhost:8880/docs](http://localhost:8880/docs)
+- **MaiMBot (WebSocket)**: `ws://localhost:8090/api/message/v1`
+
 ## 仓库关系与职责
 
 - `maim_db`（本仓库）：模型与迁移的唯一来源，提供 `db_manager`、BaseModel 及上下文隔离工具。

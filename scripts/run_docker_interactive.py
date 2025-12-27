@@ -160,6 +160,29 @@ def main():
     cmd.extend(["-v", f"{start_script}:/workspace/start_all_docker.sh"])
     print(f"✅ 将挂载启动脚本: {start_script} -> /workspace/start_all_docker.sh")
     
+    # Check if image exists
+    print(f"\n🔍 检查 Docker 镜像: {image_name}")
+    image_check = subprocess.run(
+        f"docker images -q {image_name}", 
+        shell=True, 
+        capture_output=True, 
+        text=True
+    )
+    
+    if not image_check.stdout.strip():
+        print(f"⚠️ 镜像 {image_name} 不存在，正在为您自动构建 (这可能需要几分钟)...")
+        print("------------------------------------------")
+        docker_build_cmd = ["docker", "build", "-t", image_name, "."]
+        try:
+            # Build from project root
+            subprocess.run(docker_build_cmd, cwd=project_root, check=True)
+            print("✅ 镜像构建成功！")
+        except subprocess.CalledProcessError:
+            print("❌ 镜像构建失败，请检查 Dockerfile。")
+            sys.exit(1)
+    else:
+        print("✅ 镜像已存在，跳过构建。")
+
     cmd.append(image_name)
 
     # 5. Clean up old container
