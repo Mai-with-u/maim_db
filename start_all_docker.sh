@@ -44,7 +44,7 @@ EOF
 # 1. Initialize Shared DB (MaiBot.db)
 echo "Step 1: Initializing Shared DB (MaiBot.db)..."
 mkdir -p /workspace/data/shared
-export DATABASE_URL="sqlite+aiosqlite:///workspace/data/shared/MaiBot.db"
+export DATABASE_URL="sqlite+aiosqlite:////workspace/data/shared/MaiBot.db"
 # 设置 MaiMBot 需要的环境变量以正确加载模型
 export SAAS_MODE="false" 
 python3 /workspace/ad_hoc_init.py
@@ -52,7 +52,7 @@ python3 /workspace/ad_hoc_init.py
 # 2. Initialize Web DB (maim_web.db)
 echo "Step 2: Initializing Web DB (maim_web.db)..."
 mkdir -p /workspace/data/web
-export DATABASE_URL="sqlite+aiosqlite:///workspace/data/web/maim_web.db"
+export DATABASE_URL="sqlite+aiosqlite:////workspace/data/web/maim_web.db"
 python3 /workspace/ad_hoc_init.py
 
 echo "Database Initialization Complete."
