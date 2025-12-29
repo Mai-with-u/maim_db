@@ -105,14 +105,20 @@ def main():
 
     # 3. Data Persistence
     print("\n--- 数据持久化设置 ---")
-    print("挂载本地目录到容器的 /workspace/data。")
-    data_dir = get_input_path("请输入本地数据目录路径 (推荐 ./docker_data) [回车默认使用 ./data]: ")
+    use_persistence = input("是否启用数据持久化? (y/n) [y]: ").strip().lower()
     
-    if not data_dir:
-        # Default to ./data if not provided
-        data_dir = os.path.abspath("./data")
-        os.makedirs(data_dir, exist_ok=True)
-        print(f"使用默认数据目录: {data_dir}")
+    if use_persistence != 'n':
+        print("挂载本地目录到容器的 /workspace/data。")
+        data_dir = get_input_path("请输入本地数据目录路径 (推荐 ./docker_data) [回车默认使用 ./data]: ")
+        
+        if not data_dir:
+            # Default to ./data if not provided
+            data_dir = os.path.abspath("./data")
+            os.makedirs(data_dir, exist_ok=True)
+            print(f"使用默认数据目录: {data_dir}")
+    else:
+        print("⚠️  已禁用数据持久化。容器重启后数据将丢失。")
+        data_dir = None
 
     # 4. Construct Command
     cmd = [
@@ -142,12 +148,12 @@ def main():
         print(f"✅ 将挂载 MaimConfig .env: {maimconfig_env_path}")
 
     # Unified Data Mount
-    cmd.extend(["-v", f"{data_dir}:/workspace/data"])
-    print(f"✅ 将挂载数据目录: {data_dir} -> /workspace/data")
+    if data_dir:
+        cmd.extend(["-v", f"{data_dir}:/workspace/data"])
+        print(f"✅ 将挂载数据目录: {data_dir} -> /workspace/data")
     
-    # Unified Data Mount
-    cmd.extend(["-v", f"{data_dir}:/workspace/data"])
-    print(f"✅ 将挂载数据目录: {data_dir} -> /workspace/data")
+
+
     
     # Environment Variables for Path Resolution
     cmd.extend([
