@@ -1,9 +1,65 @@
 #!/bin/bash
 
+# 全局初始化：确保所有数据库表已创建 (Unified Init via Ad-Hoc Script)
+echo "Initializing Databases (Ad-Hoc Mode)..."
+
+# Create a temporary init script that uses the CONTAINER'S code
+cat <<EOF > /workspace/ad_hoc_init.py
+import sys
+import os
+
+# Add paths to find MaiMBot and maim_db
+sys.path.append("/workspace/MaiMBot")
+sys.path.append("/workspace/maim_db/src") # Just in case
+
+try:
+    from maim_db.core.database import db_manager
+    # Try importing models from MaiMBot (where they currently live in the container image)
+    from src.common.database.database_model import MODELS as MAIMBOT_MODELS
+    
+    # Try importing models from maim_db (V2 models)
+    try:
+        from maim_db.core.models import ALL_MODELS as MAIMDB_MODELS
+    except ImportError:
+        MAIMDB_MODELS = []
+        
+    ALL_MODELS = list(set(MAIMBOT_MODELS + MAIMDB_MODELS))
+    
+    print(f"Loaded {len(ALL_MODELS)} models.")
+    
+    db_manager.connect()
+    db_manager.create_tables(ALL_MODELS)
+    db_manager.close()
+    print("Tables created successfully.")
+    
+except Exception as e:
+    print(f"Init failed: {e}")
+    import traceback
+    traceback.print_exc()
+    # Don't exit 1, try to proceed? 
+    # No, strict failure is better to debug.
+    sys.exit(1)
+EOF
+
+# 1. Initialize Shared DB (MaiBot.db)
+echo "Step 1: Initializing Shared DB (MaiBot.db)..."
+mkdir -p /workspace/data/shared
+export DATABASE_URL="sqlite+aiosqlite:///workspace/data/shared/MaiBot.db"
+# 设置 MaiMBot 需要的环境变量以正确加载模型
+export SAAS_MODE="false" 
+python3 /workspace/ad_hoc_init.py
+
+# 2. Initialize Web DB (maim_web.db)
+echo "Step 2: Initializing Web DB (maim_web.db)..."
+mkdir -p /workspace/data/web
+export DATABASE_URL="sqlite+aiosqlite:///workspace/data/web/maim_web.db"
+python3 /workspace/ad_hoc_init.py
+
+echo "Database Initialization Complete."
+
 # 启动 MaimConfig (Port 8000)
 echo "Starting MaimConfig..."
 cd /workspace/MaimConfig
-mkdir -p /workspace/data/shared  # Shared DB directory
 # 设置环境变量: 指向共享数据库
 export MAIMCONFIG_DB_PATH=${MAIMCONFIG_DB_PATH:-"/workspace/data/shared/MaiBot.db"}
 # Explicitly set DATABASE_URL for MaimConfig ensuring it is a valid URI (4 slashes for absolute path)
@@ -20,55 +76,7 @@ mkdir -p /workspace/data/web  # Specific subdir for Web Backend
 # 注意：使用特定子目录，与 Bot/Config 分开
 export DATABASE_URL="sqlite+aiosqlite:////workspace/data/web/maim_web.db"
 
-# 初始化数据库 (Create Tables)
-echo "Initializing Backend Database..."
-echo "--- DEBUG INFO ---"
-python3 -c "import maim_db; print(f'maim_db path: {maim_db.__file__}'); import os; print(f'maim_db dir contents: {os.listdir(os.path.dirname(maim_db.__file__))}')"
-echo "Checking maimconfig_models contents:"
-ls -R $(python3 -c "import maim_db, os; print(os.path.join(os.path.dirname(maim_db.__file__), 'maimconfig_models'))")
-echo "--- END DEBUG ---"
-cat <<EOF > /workspace/init_db.py
-import asyncio
-import os
-import sys
-import importlib.util
-
-# Ensure environment variable is set for the script context as well
-os.environ["DATABASE_URL"] = "${DATABASE_URL}"
-
-print(f"DEBUG: sys.path: {sys.path}", flush=True)
-
-try:
-    import maim_db
-    print(f"DEBUG: maim_db imported from {maim_db.__file__}", flush=True)
-    
-    # Try finding spec for subpackage
-    spec = importlib.util.find_spec("maim_db.maimconfig_models")
-    print(f"DEBUG: find_spec('maim_db.maimconfig_models'): {spec}", flush=True)
-
-    # Try explicit import
-    import maim_db.maimconfig_models.models as models
-    print(f"DEBUG: successfully imported models from {models.__file__}", flush=True)
-    create_tables = models.create_tables
-except ImportError as e:
-    print(f"CRITICAL ERROR importing maim_db models: {e}", flush=True)
-    # List directory of maim_db again just to be sure
-    if 'maim_db' in locals():
-        print(f"maim_db dir: {os.listdir(os.path.dirname(maim_db.__file__))}", flush=True)
-        pkg_path = os.path.join(os.path.dirname(maim_db.__file__), 'maimconfig_models')
-        if os.path.exists(pkg_path):
-             print(f"maimconfig_models dir content: {os.listdir(pkg_path)}", flush=True)
-    raise
-
-async def main():
-    print("Creating tables...", flush=True)
-    await create_tables()
-    print("Tables created.", flush=True)
-
-if __name__ == "__main__":
-    asyncio.run(main())
-EOF
-python /workspace/init_db.py
+# 旧的初始化逻辑已移除，统一由顶部的 python3 -m maim_db.init_db 处理
 
 python -m uvicorn src.main:app --host 0.0.0.0 --port 8880 &
 

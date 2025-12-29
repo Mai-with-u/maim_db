@@ -65,6 +65,28 @@ from .system import (
     User,
 )
 
+# MaiMBot Models
+from .maimbot_models import (
+    ChatStreams,
+    LLMUsage,
+    Emoji,
+    Messages,
+    Images,
+    ImageDescriptions,
+    EmojiDescriptionCache,
+    RuntimeState,
+    HippoTopicCache,
+    HippoBatchState,
+    OnlineTime,
+    PersonInfo,
+    GroupInfo,
+    Expression,
+    Jargon,
+    ChatHistorySummary,
+    ThinkingBack,
+    MAIMBOT_MODELS,
+)
+
 # v2模型列表（新设计，基于MaiMConfig）
 V2_MODELS = [
     BaseModel,
@@ -106,7 +128,7 @@ BUSINESS_MODELS = [
 ]
 
 # 所有模型的列表，用于数据库表创建
-ALL_MODELS = V2_MODELS + BUSINESS_MODELS + AGENT_CONFIG_MODELS
+ALL_MODELS = V2_MODELS + BUSINESS_MODELS + AGENT_CONFIG_MODELS + MAIMBOT_MODELS
 
 # 向后兼容的旧模型（标记为deprecated）
 DEPRECATED_MODELS = [
@@ -154,6 +176,25 @@ __all__ = [
     "FileUpload",
     "UserSession",
     "SystemMetrics",
+    # MaiMBot Models
+    "ChatStreams",
+    "LLMUsage",
+    "Emoji",
+    "Messages",
+    "Images",
+    "ImageDescriptions",
+    "EmojiDescriptionCache",
+    "RuntimeState",
+    "HippoTopicCache",
+    "HippoBatchState",
+    "OnlineTime",
+    "PersonInfo",
+    "GroupInfo",
+    "Expression",
+    "Jargon",
+    "ChatHistorySummary",
+    "ThinkingBack",
+    "MAIMBOT_MODELS",
     # 旧模型（deprecated）
     "OldBaseModel",
     "OldTenant",
